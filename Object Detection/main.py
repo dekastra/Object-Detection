@@ -9,17 +9,23 @@ classFile = 'coco.names'
 with open(classFile,'rt') as f:
     classNames = f.read().rstrip('\n').split('\n')
 
-#print(classNames)
+#path to file that contain the trained model for dnn
+configPath = 'ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt' #file that contain the network configuration: the number of hidden layer, etc
+weightsPath = 'frozen_inference_graph.pb' #weight that used in the network
 
-configPath = 'ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
-weightsPath = 'frozen_inference_graph.pb'
-
+#loading the network
 net = cv2.dnn_DetectionModel(weightsPath,configPath)
-net.setInputSize(320,320)
-net.setInputScale(1.0/ 127.5)
+#set the preprocessing properties
+net.setInputSize(320,320) #frame size
+net.setInputScale(1.0/ 127.5) #frame scaling
 net.setInputMean((127.5, 127.5, 127.5))
-net.setInputSwapRB(True)
+net.setInputSwapRB(True) #invert the first and last channel of the frame
 
+#Function to detect object within the detected frame
+#Input: img - captured frame from video source
+#       objects - list of classification label from COCO names
+#Output: img - the processed frame
+#        objectInfo - object classification information, include: dimension and position of detected object, and class label.
 def getObjects(img, draw=True, objects=[]):
     classIds, confs, bbox = net.detect(img,confThreshold=thres)
     bbox = list(bbox)
